@@ -23,4 +23,4 @@
 - Open SerialMonitor
 - Upload code (keep SerialMonitor open)
 
-If ever the Feather becomes unresponsive see (here)[https://learn.adafruit.com/adafruit-feather-m0-express-designed-for-circuit-python-circuitpython/feather-help]
+If ever the Feather becomes unresponsive see [here](https://learn.adafruit.com/adafruit-feather-m0-express-designed-for-circuit-python-circuitpython/feather-help)
