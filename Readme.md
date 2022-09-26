@@ -16,4 +16,11 @@
 - Install [RTClib](https://learn.adafruit.com/adafruit-pcf8523-real-time-clock/rtc-with-arduino) library by Adafruit
 - Install adafruit EPD, adafruit ImageReader and adafruit GFX librarier (see [here](https://learn.adafruit.com/adafruit-2-9-eink-display-breakouts-and-featherwings/arduino-setup))
 - Connect through USB, upload code
-- Open Serial Monitor, this will update the time on the clock to the correct time
+
+
+# Update time
+- Determine COM-Port
+- Open SerialMonitor
+- Upload code (keep SerialMonitor open)
+
+If ever the Feather becomes unresponsive see (here)[https://learn.adafruit.com/adafruit-feather-m0-express-designed-for-circuit-python-circuitpython/feather-help]
