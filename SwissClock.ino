@@ -1,10 +1,8 @@
 /***************************************************
-  Adafruit invests time and resources providing this open source code,
-  please support Adafruit and open-source hardware by purchasing
-  products from Adafruit!
+  SwissClock by Dominic Gerber
+  see https://github.com/dogerber/swissgerman_clock
 
-  Written by Limor Fried/Ladyada for Adafruit Industries.
-  MIT license, all text above must be included in any redistribution
+
  ****************************************************/
 
 #include "Adafruit_ThinkInk.h"
@@ -69,20 +67,12 @@ int houridx;
 
 void setup() {
   Serial.begin(115200);
-  //  while (!Serial) { // wait for Serial to open
-  //    delay(10);
-  //  }
 
 
   // Initiate digital Pins
   pinMode(PIN_BUTTON_A, INPUT);
   pinMode(PIN_BUTTON_B, INPUT);
   pinMode(PIN_BUTTON_C, INPUT);
-
-
-
-
-  Serial.println("Adafruit EPD full update test in mono & grayscale");
 
   display.begin(THINKINK_GRAYSCALE4);
   display.clearBuffer();
@@ -97,17 +87,33 @@ void setup() {
 
 
   if (! rtc.begin()) {
-    Serial.println("Couldn't find RTC");
-    Serial.flush();
+    display.clearBuffer();
+    display.println("Couldn't find RTC");
+    display.display();
     abort();
   }
 
- // if (! rtc.initialized() || rtc.lostPower()) {
- if (true) {
-    Serial.println("RTC is NOT initialized, let's set the time!");
+  if (rtc.lostPower()) { // only update time from PC when power was lost
+    display.clearBuffer();
+    display.setCursor(1, 10);
+    display.println("RTC lost power? ");
+    display.println("Open Serial 115200 on PC");
+    display.println("github.com/dogerber/swissclock");
+    display.display();
+  }
+
+
+
+  if (Serial) { // if serial open, update the time
+    Serial.println("Setting the time ...");
+    display.clearBuffer();
+    display.setCursor(1, 10);
+    display.println("Setting the time ...");
+    display.display();
     // When time needs to be set on a new device, or after a power loss, the
     // following line sets the RTC to the date & time this sketch was compiled
-    //delay(2000);
+    delay(2000);
+
     rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
     // This line sets the RTC with an explicit date & time, for example to set
     // January 21, 2014 at 3am you would call:
@@ -117,6 +123,14 @@ void setup() {
     // without battery before calling adjust(). This gives the PCF8523's
     // crystal oscillator time to stabilize. If you call adjust() very quickly
     // after the RTC is powered, lostPower() may still return true.
+    DateTime now = rtc.now();
+    display.print("Time set to: ");
+    display.print(now.hour(), DEC);
+    display.print(':');
+    display.println(now.minute(), DEC);
+    display.display();
+    delay(5000);
+
   }
 
 
@@ -131,22 +145,22 @@ void setup() {
 void loop() {
 
 
-    DateTime now = rtc.now();
+  DateTime now = rtc.now();
 
 
-    //
-    // if (millis() - t_last_refresh > t_interval) {
-    if (everyfiveminute) { // display every 5 min
-      if (now.minute() % 5 == 0 & millis() - t_last_refresh > t_interval) {
-        // alternate if now.minute/5 has no remainder
-        printTime(now);
-      }
-    }
-    else { // display every minute
+  //
+  // if (millis() - t_last_refresh > t_interval) {
+  if (everyfiveminute) { // display every 5 min
+    if (now.minute() % 5 == 0 & millis() - t_last_refresh > t_interval) {
+      // alternate if now.minute/5 has no remainder
       printTime(now);
     }
+  }
+  else { // display every minute
+    printTime(now);
+  }
 
-    delay(60 * 1000); // if holding display and looping to many times screen gets wierd spots
+  delay(60 * 1000); // if holding display and looping to many times screen gets wierd spots
 
 
 
@@ -208,10 +222,10 @@ void printTime(DateTime now ) {
   display.setTextSize(1);
   display.setFont(&FONT_NAME2);
   display.setCursor(LEFT_MARGIN * 2, 4 * LINE_HEIGHT + 5);
-  if (everyfiveminute){
-  display.print(minutesCH[minidx]);
+  if (everyfiveminute) {
+    display.print(minutesCH[minidx]);
   }
-  else{
+  else {
     display.print(minutesCHmin[minidx]);
   }
   display.print(" ");
@@ -223,6 +237,10 @@ void printTime(DateTime now ) {
   display.setCursor(LEFT_MARGIN, 5 * LINE_HEIGHT + 5);
   display.print("gsi.");
   display.println();
+
+  if (rtc.lostPower()) { // notify that time was lost
+    display.println("RTC lost power!");
+  }
 
   display.display();
   t_last_refresh = millis();
