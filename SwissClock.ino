@@ -17,6 +17,8 @@
 #define COLOR2 EPD_LIGHT
 #define COLOR3 EPD_DARK
 
+#define VBATPIN A5 // where the battery level is measured (built in)
+
 #define LEFT_MARGIN 15
 #define LINE_HEIGHT 18
 
@@ -80,7 +82,7 @@ void setup() {
   display.setTextColor(EPD_BLACK, EPD_WHITE);
   display.setFont(&FONT_NAME);
   display.setCursor(10, 60);
-  display.print("Fuer Tessa zum 29ste Geburtstag");
+  display.print("SwissClock");
   display.display();
   delay(2000);
 
@@ -107,7 +109,7 @@ void setup() {
   if (Serial) { // if serial open, update the time
     Serial.println("Setting the time ...");
     display.clearBuffer();
-    display.setCursor(1, 10);
+    display.setCursor(5, 10);
     display.println("Setting the time ...");
     display.display();
     // When time needs to be set on a new device, or after a power loss, the
@@ -159,6 +161,8 @@ void loop() {
   else { // display every minute
     printTime(now);
   }
+
+
 
   delay(60 * 1000); // if holding display and looping to many times screen gets wierd spots
 
@@ -242,86 +246,21 @@ void printTime(DateTime now ) {
     display.println("RTC lost power!");
   }
 
+    // measure battery
+  float measuredvbat = analogRead(VBATPIN);
+measuredvbat *= 2;    // we divided by 2, so multiply back
+measuredvbat *= 3.3;  // Multiply by 3.3V, our reference voltage
+measuredvbat /= 1024; // convert to voltage
+
+if (measuredvbat <3.4){
+display.print("               Battery low " ); 
+display.print(100*(measuredvbat-3.2),0);
+display.println(" %" ); 
+}
+
+
+
   display.display();
   t_last_refresh = millis();
 }
 
-//void displayTime() {
-//  // display.clearBuffer();
-//  display.setCursor(0, 0);
-//  display.print(now.year(), DEC);
-//  display.print('/');
-//  display.print(now.month(), DEC);
-//  display.print('/');
-//  display.println(now.day(), DEC);
-//  display.print(" (");
-//  display.println(daysOfTheWeek[now.dayOfTheWeek()]);
-//  display.print(") ");
-//  display.print(now.hour(), DEC);
-//  display.print(':');
-//  display.print(now.minute(), DEC);
-//  display.print(':');
-//  display.print(now.second(), DEC);
-//  display.println();
-//  display.display();
-//}
-
-
-
-// example of grey levels
-//  display.clearBuffer();
-//  display.fillRect(display.width() / 4, 0, display.width() / 4, display.height(), EPD_LIGHT);
-//  display.fillRect((display.width() * 2) / 4, 0, display.width() / 4, display.height(), EPD_DARK);
-//  display.fillRect((display.width() * 3) / 4, 0, display.width() / 4, display.height(), EPD_BLACK);
-//  display.display();
-//  delay(2000);
-
-
-
-//  // read buttons
-//  if (!digitalRead(PIN_BUTTON_A)) {
-//    editMode = !editMode;
-//    Serial.println("A pressed");
-//  }
-//
-//
-//  if (!digitalRead(PIN_BUTTON_B)) {
-//    Serial.println("B pressed");
-//  }
-
-
-//  if (editMode) {
-//    Serial.println("Edit Mode");
-//
-//    if (!digitalRead(PIN_BUTTON_B)) {
-//      DateTime now ( now + TimeSpan(1, 0, 0, 0));
-//      Serial.println("Adding an hour");
-//    }
-//
-//    //    if (digitalRead(PIN_BUTTON_A)) {
-//    //        DateTime now ( now - TimeSpan(1, 0, 0, 0));
-//    //        Serial.println("Subtracting an hour");
-//    //    }
-//
-//    // show time in console
-//    if (false) {
-//      Serial.print(now.year(), DEC);
-//      Serial.print('/');
-//      Serial.print(now.month(), DEC);
-//      Serial.print('/');
-//      Serial.print(now.day(), DEC);
-//
-//      Serial.println(daysOfTheWeek[now.dayOfTheWeek()]);
-//
-//      Serial.print(now.hour(), DEC);
-//      Serial.print(':');
-//      Serial.print(now.minute(), DEC);
-//      Serial.print(':');
-//      Serial.print(now.second(), DEC);
-//      Serial.println();
-//    }
-//
-//    // change time on rtc
-//    rtc.adjust(DateTime(now));
-//
-//  } // end edit Mode
