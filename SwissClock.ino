@@ -32,11 +32,10 @@
 // 2.9" Grayscale Featherwing or Breakout:
 ThinkInk_290_Grayscale4_T5 display(EPD_DC, EPD_RESET, EPD_CS, SRAM_CS, EPD_BUSY);
 
-boolean editMode = false;
-const boolean everyfiveminute = false; // false = every 1 min refresh
+const boolean everyfiveminute = true; // false = every 1 min refresh
 
 unsigned long t_last_refresh = millis();
-unsigned long t_interval = 60 * 1000; // [ms]
+unsigned long t_interval = 61 * 1000; // [ms]
 
 
 RTC_PCF8523 rtc;
@@ -67,27 +66,39 @@ int houridx;
 #define PIN_BUTTON_B 12
 #define PIN_BUTTON_C 13
 
+boolean digit_clock = false;
+
 void setup() {
   Serial.begin(115200);
 
 
   // Initiate digital Pins
-  pinMode(PIN_BUTTON_A, INPUT);
-  pinMode(PIN_BUTTON_B, INPUT);
-  pinMode(PIN_BUTTON_C, INPUT);
+  // pinMode(PIN_BUTTON_A, INPUT);
+  // pinMode(PIN_BUTTON_B, INPUT);
+  // pinMode(PIN_BUTTON_C, INPUT);
 
+  // Buttons as interrupts
+  pinMode(PIN_BUTTON_A, INPUT);
+  attachInterrupt(digitalPinToInterrupt(PIN_BUTTON_A), a_pressed, FALLING);
+
+  pinMode(PIN_BUTTON_B, INPUT);
+  attachInterrupt(digitalPinToInterrupt(PIN_BUTTON_B), add_an_hour, FALLING);
+
+  pinMode(PIN_BUTTON_C, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(PIN_BUTTON_C), add_a_minute, RISING);
+
+  // start screen with welcome mesage
   display.begin(THINKINK_GRAYSCALE4);
   display.clearBuffer();
   display.setTextSize(1);
   display.setTextColor(EPD_BLACK, EPD_WHITE);
   display.setFont(&FONT_NAME);
   display.setCursor(10, 60);
-  display.print("SwissClock");
+  display.print("Fuer Tessa zum 29ste Geburtstag");
   display.display();
-  delay(2000);
+  delay(1000);
 
-
-
+  // check for rtc
   if (! rtc.begin()) {
     display.clearBuffer();
     display.println("Couldn't find RTC");
@@ -95,6 +106,7 @@ void setup() {
     abort();
   }
 
+  // see if rtc lost power
   if (rtc.lostPower()) { // only update time from PC when power was lost
     display.clearBuffer();
     display.setCursor(1, 10);
@@ -105,11 +117,11 @@ void setup() {
   }
 
 
-
+  // Open serial if possible and update time from compilation time
   if (Serial) { // if serial open, update the time
     Serial.println("Setting the time ...");
     display.clearBuffer();
-    display.setCursor(5, 10);
+    display.setCursor(10, 10);
     display.println("Setting the time ...");
     display.display();
     // When time needs to be set on a new device, or after a power loss, the
@@ -131,30 +143,41 @@ void setup() {
     display.print(':');
     display.println(now.minute(), DEC);
     display.display();
-    delay(5000);
+    delay(2000);
 
   }
 
-
+// refresh screen now
   DateTime now = rtc.now();
+  printTime(now);
 
+}
+
+void a_pressed() {
+  digit_clock = !digit_clock;
+  DateTime now = rtc.now();
+  printTime(now);
+}
+
+void add_an_hour() {
+  DateTime now = rtc.now() + TimeSpan(0, 1, 0, 0);
+  rtc.adjust(now);
+  printTime(now);
+}
+
+void add_a_minute() {
+  DateTime now = rtc.now() + TimeSpan(0, 0, 1, 0);
+  rtc.adjust(now);
   printTime(now);
 }
 
 
-
-
 void loop() {
+  DateTime now = rtc.now(); // read rtc
 
-
-  DateTime now = rtc.now();
-
-
-  //
-  // if (millis() - t_last_refresh > t_interval) {
   if (everyfiveminute) { // display every 5 min
     if (now.minute() % 5 == 0 & millis() - t_last_refresh > t_interval) {
-      // alternate if now.minute/5 has no remainder
+      // update time if now.minute/5 has no remainder
       printTime(now);
     }
   }
@@ -162,12 +185,7 @@ void loop() {
     printTime(now);
   }
 
-
-
   delay(60 * 1000); // if holding display and looping to many times screen gets wierd spots
-
-
-
 }
 
 
@@ -176,91 +194,104 @@ void loop() {
 
 void printTime(DateTime now ) {
 
-  if (everyfiveminute) { // every 5 min
-    minidx = floor(now.minute() / 5);
-  }
-  else { //every 1 minute
-    minidx = now.minute();
-  }
+  display.clearBuffer(); // clear screen
 
-
-  if (now.minute() < 30) {
-    houridx = now.twelveHour() - 1; // note that houridx = 0 is equal to "Eis"
-  }
-  else {
-    houridx = now.twelveHour();
-  }
-
-
-
-  display.clearBuffer();
-
-  // Date
-  display.setCursor(60, 1 * LINE_HEIGHT);
-  display.setTextSize(1);
-  display.print(now.day(), DEC);
-  display.print('.');
-  display.print(now.month(), DEC);
-  display.print('.');
-  display.print(now.year(), DEC);
-  display.print(" - ");
-  display.println(daysOfTheWeek[now.dayOfTheWeek()]);
-
-  // debug time
-  if (false) {
-    display.setCursor(LEFT_MARGIN, 2 * LINE_HEIGHT);
+  if (digit_clock) {
+    // simple time display as HH:MM
+    display.setFont(&FONT_NAME2); // bold
+    display.setCursor(60, 85 );
+    display.setTextSize(4);
     display.print(now.hour(), DEC);
     display.print(':');
     display.print(now.minute(), DEC);
-    display.print(minidx);
-    display.print(" ");
-    display.println(houridx);
-  }
 
-  // es isch
-  display.setTextSize(1);
-  display.setCursor(LEFT_MARGIN, 3 * LINE_HEIGHT);
-  display.println("Es isch ");
-
-  // main
-  display.setTextSize(1);
-  display.setFont(&FONT_NAME2);
-  display.setCursor(LEFT_MARGIN * 2, 4 * LINE_HEIGHT + 5);
-  if (everyfiveminute) {
-    display.print(minutesCH[minidx]);
   }
   else {
-    display.print(minutesCHmin[minidx]);
-  }
-  display.print(" ");
-  display.print(hourCH[houridx]);
-  display.setFont(&FONT_NAME);
 
-  // gsi
-  display.setTextSize(1);
-  display.setCursor(LEFT_MARGIN, 5 * LINE_HEIGHT + 5);
-  display.print("gsi.");
-  display.println();
+
+    display.setFont(&FONT_NAME); //normal font
+    //  if (everyfiveminute) { // every 5 min
+    //    minidx = floor(now.minute() / 5);
+    //  }
+    //  else { //every 1 minute
+    minidx = now.minute();
+    // }
+
+
+    if (now.minute() < 30) {
+      houridx = now.twelveHour() - 1; // note that houridx = 0 is equal to "Eis"
+    }
+    else {
+      houridx = now.twelveHour();
+    }
+
+    // Date
+    display.setCursor(60, 1 * LINE_HEIGHT);
+    display.setTextSize(1);
+    display.print(now.day(), DEC);
+    display.print('.');
+    display.print(now.month(), DEC);
+    display.print('.');
+    display.print(now.year(), DEC);
+    display.print(" - ");
+    display.println(daysOfTheWeek[now.dayOfTheWeek()]);
+
+    // debug time
+    if (false) {
+      display.setCursor(LEFT_MARGIN, 2 * LINE_HEIGHT);
+      display.print(now.hour(), DEC);
+      display.print(':');
+      display.print(now.minute(), DEC);
+      display.print(minidx);
+      display.print(" ");
+      display.println(houridx);
+    }
+
+    // es isch
+    display.setTextSize(1);
+    display.setCursor(LEFT_MARGIN, 3 * LINE_HEIGHT);
+    display.println("Es isch ");
+
+    // main
+    display.setTextSize(1);
+    display.setFont(&FONT_NAME2);
+    display.setCursor(LEFT_MARGIN * 2, 4 * LINE_HEIGHT + 5);
+    //  if (everyfiveminute) {
+    //    display.print(minutesCH[minidx]);
+    //  }
+    //  else {
+    display.print(minutesCHmin[minidx]);
+    // }
+    display.print(" ");
+    display.print(hourCH[houridx]);
+    display.setFont(&FONT_NAME);
+
+    // gsi
+    display.setTextSize(1);
+    display.setCursor(LEFT_MARGIN, 5 * LINE_HEIGHT + 5);
+    display.print("gsi.");
+    display.println();
+
+  }
 
   if (rtc.lostPower()) { // notify that time was lost
     display.println("RTC lost power!");
   }
 
-    // measure battery
+  // measure battery
   float measuredvbat = analogRead(VBATPIN);
-measuredvbat *= 2;    // we divided by 2, so multiply back
-measuredvbat *= 3.3;  // Multiply by 3.3V, our reference voltage
-measuredvbat /= 1024; // convert to voltage
+  measuredvbat *= 2;    // we divided by 2, so multiply back
+  measuredvbat *= 3.3;  // Multiply by 3.3V, our reference voltage
+  measuredvbat /= 1024; // convert to voltage
 
-if (measuredvbat <3.4){
-display.print("               Battery low " ); 
-display.print(100*(measuredvbat-3.2),0);
-display.println(" %" ); 
-}
+  if (measuredvbat < 3.4) {
+    display.print("               Battery low " );
+    display.print(100 * (measuredvbat - 3.2), 0);
+    display.println(" %" );
+  }
 
 
 
   display.display();
   t_last_refresh = millis();
 }
-
