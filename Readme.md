@@ -1,5 +1,6 @@
 Clock to display the current time in a swissgerman sentence.
 One battery charge of 1100 mAh lasts for about 5 days when the screen is refreshed every 1 minute.
+Use ...Lid_with_hole.stl to have a USB wire run into the clock.
 
 # Used parts
 
