@@ -1,6 +1,8 @@
-Clock to display the current time in a swissgerman sentence.
+![splash](img/splash.png)
+# Swissgerman sentence clock
+Clock to display the current time in a swissgerman sentence on a eInk display.
 One battery charge of 1100 mAh lasts for about 5 days when the screen is refreshed every 1 minute.
-Use ...Lid_with_hole.stl to have a USB wire run into the clock.
+Use 3D_print/Lid_with_hole.stl to have a USB wire run into the clock.
 
 # Used parts
 
@@ -11,6 +13,8 @@ Use ...Lid_with_hole.stl to have a USB wire run into the clock.
 - LiPo Battery
 - 3D printed enclosure (available in this repo or [here on Onshape](https://cad.onshape.com/documents/8f49303399ef22a7e39bc2af/w/fa5502a23fe9f76c9c39dbc8/e/11aa9429d28955ad08e092fa?renderMode=0&uiState=632acc33edc92c60b2c7bdb9))
 - Wires
+
+![interior](img/interior.png)
 
 # Installation
 - Install Arduino IDE
@@ -26,3 +30,8 @@ Use ...Lid_with_hole.stl to have a USB wire run into the clock.
 - Upload code (keep SerialMonitor open)
 
 If ever the Feather becomes unresponsive see [here](https://learn.adafruit.com/adafruit-feather-m0-express-designed-for-circuit-python-circuitpython/feather-help)
+
+
+# Possible improvements
+- Could set the Feather to deep sleep to save battery life
+- Could add buttons to set time
