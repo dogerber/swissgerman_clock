@@ -20,7 +20,7 @@ Use 3D_print/Lid_with_hole.stl to have a USB wire run into the clock.
 - Install Arduino IDE
 - [Add Feather M0 to your IDE](https://learn.adafruit.com/adafruit-feather-m0-basic-proto/setup)
 - Install [RTClib](https://learn.adafruit.com/adafruit-pcf8523-real-time-clock/rtc-with-arduino) library by Adafruit
-- Install adafruit EPD, adafruit ImageReader and adafruit GFX librarier (see [here](https://learn.adafruit.com/adafruit-2-9-eink-display-breakouts-and-featherwings/arduino-setup))
+- Install adafruit EPD, adafruit ImageReader and adafruit GFX library (see [here](https://learn.adafruit.com/adafruit-2-9-eink-display-breakouts-and-featherwings/arduino-setup))
 - Connect through USB, upload code
 
 
